@@ -2,11 +2,11 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
+    url: "https://sryaengbl.github.io/",
     title: "stacks",
     description: "technical blog",
     author: "Brandon Li",
-    profile: "https://satna.ing",
+    profile: "https://sryaengbl.github.io/",
     ogImage: "default-og.jpg",
     lang: "en",
     timezone: "Asia/Bangkok",
@@ -29,10 +29,10 @@ export default defineAstroPaperConfig({
     search: "pagefind",
   },
   socials: [
-    { name: "github",   url: "https://github.com/satnaing/astro-paper" },
+    { name: "github",   url: "https://https://github.com/sryaengbl" },
     { name: "x",        url: "https://x.com/username" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/username/" },
-    { name: "mail",     url: "mailto:yourmail@gmail.com" },
+    { name: "linkedin", url: "https://www.linkedin.com/in/brandon-li-5965832a6/" },
+    { name: "mail",     url: "mailto:brandon.li@yale.edu" },
   ],
   shareLinks: [
     { name: "whatsapp", url: "https://wa.me/?text=" },
