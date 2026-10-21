@@ -51,7 +51,6 @@
     <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
         cnt[a[i]]++;
     }
-    ;
     ll ans = <span class="cpp-number">0</span>;
     <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n - k; i++) {
         <span class="cpp-keyword">if</span> (cnt[i] &gt; <span class="cpp-number">1</span>) {
@@ -59,7 +58,6 @@
             cnt[i + k] += cnt[i] - <span class="cpp-number">1</span>;
         }
     }
-    ;
     <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = n - k + <span class="cpp-number">1</span>; i &lt;= n; i++) {
         ans += (ll)(cnt[i] - <span class="cpp-number">1</span>) * (cnt[i]) / <span class="cpp-number">2</span>;
     }

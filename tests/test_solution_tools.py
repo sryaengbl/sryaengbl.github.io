@@ -108,12 +108,53 @@ int32_t main() {
         self.assertIn('R"tag( // dbg(x); /* literal */ )tag"', result['source'])
         self.assertIn("1'000", result['source'])
         self.assertRegex(result['source'], r'int\s+value')
-        self.assertIn('if (n) ; else value++;', result['source'])
+        self.assertIn('if (n) {} else value++;', result['source'])
         self.assertIn('((void)0)', result['source'])
         tokens = tokenize(result['source'])
         self.assertFalse(any(t.kind == 'comment' for t in tokens))
         self.assertFalse(any(t.kind == 'identifier' and t.text in ('dbg', 'dbgn') for t in tokens))
         self.assertEqual(result['analysis'], '')
+
+    def test_debug_statements_remove_semicolons_and_newly_empty_lines(self):
+        source = '''void solve() {
+    ans += dp[x];
+    dbg(x, dp, subt); // debugging
+    self(x, u, self); // keep this call
+    dbg(
+        x, nested(1, 2)
+    );
+    dbg(x); dbgn(x);
+    int a = 1; dbg(a); int b = 2; // keep both declarations
+    ; // intentionally empty statement
+}
+'''
+        self.assertEqual(prepare_solution(source)['source'], '''void solve() {
+    ans += dp[x];
+    self(x, u, self);
+    int a = 1;  int b = 2;
+    ;
+}
+''')
+
+    def test_control_bodies_and_debug_expressions_stay_valid(self):
+        source = '''void solve() {
+    if (x) dbg(x); else use(x);
+    if (x)
+        dbg(x);
+    else use(x);
+    while (x) dbg(x);
+    do dbg(x); while (x);
+    for (; dbg(x); step()) use(x);
+    return dbg(x);
+}
+'''
+        cleaned = prepare_solution(source)['source']
+        self.assertIn('if (x) {} else use(x);', cleaned)
+        self.assertIn('if (x)\n        {}\n    else use(x);', cleaned)
+        self.assertIn('while (x) {}', cleaned)
+        self.assertIn('do {} while (x);', cleaned)
+        self.assertIn('for (; ((void)0); step()) use(x);', cleaned)
+        self.assertIn('return ((void)0);', cleaned)
 
     def test_comment_at_start_of_main_and_missing_metadata(self):
         result = prepare_solution('int32_t main() {\n// My idea.\nreturn 0;\n}')

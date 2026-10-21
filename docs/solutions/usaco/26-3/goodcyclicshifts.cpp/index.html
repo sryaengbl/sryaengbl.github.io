@@ -132,7 +132,6 @@ instructive problem on using inequalities to reduce time complexity</div>
         l[i] = stk.top().second;
         stk.push({ext[i], i});
     }
-    ;
     vector&lt;<span class="cpp-keyword">int</span>&gt; pref(n, <span class="cpp-number">0</span>);
     <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; <span class="cpp-number">2</span> * n; i++) {
         <span class="cpp-keyword">int</span> mn = max(max(<span class="cpp-number">0</span>, i - n + <span class="cpp-number">1</span>), r[i] - n + <span class="cpp-number">1</span>);
@@ -146,7 +145,6 @@ instructive problem on using inequalities to reduce time complexity</div>
         <span class="cpp-keyword">if</span> (i) pref[i] += pref[i - <span class="cpp-number">1</span>];
         <span class="cpp-keyword">if</span> (pref[i] == <span class="cpp-number">0</span>) ans.push_back((n - i) % n);
     }
-    ;
     sort(ans.begin(), ans.end());
     cout &lt;&lt; ans.size() &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
     <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; ans.size(); i++) {

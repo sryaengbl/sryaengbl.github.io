@@ -140,6 +140,31 @@ def extract_timing(notes):
     return timings, '\n'.join(analysis).strip()
 
 
+def debug_context(code, index):
+    """Distinguish complete statements, control-flow bodies, and expressions."""
+    stack = []
+    for token in code[:index]:
+        if token.kind != 'symbol': continue
+        if token.text in ('(', '[', '{'): stack.append(token.text)
+        elif token.text in (')', ']', '}') and stack: stack.pop()
+    if stack and stack[-1] in ('(', '['): return 'expression'
+    if not index: return 'statement'
+    previous = code[index - 1].text
+    if previous in ('else', 'do'): return 'body'
+    if previous == ')':
+        depth = 0
+        for j in range(index - 1, -1, -1):
+            if code[j].kind != 'symbol': continue
+            if code[j].text == ')': depth += 1
+            elif code[j].text == '(':
+                depth -= 1
+                if depth == 0:
+                    before = code[j - 1].text if j else ''
+                    if before == 'constexpr' and j > 1: before = code[j - 2].text
+                    return 'body' if before in ('if', 'for', 'while', 'switch') else 'expression'
+    return 'statement' if previous in ('{', '}', ';') else 'expression'
+
+
 def prepare_solution(source):
     # Preserve the author's standard opening block verbatim, including debug macros.
     header = ('#include <bits/stdc++.h>', 'using namespace std;', 'using ll = long long;',
@@ -181,18 +206,31 @@ def prepare_solution(source):
         if end_call is None:
             raise ValueError('Unbalanced debug call; cannot safely prepare blog copy.')
         end = code[end_call].end
-        # Preserve the semicolon as an empty statement (e.g. if (x) dbg(x); else ...).
-        # Expression-position calls use a neutral void expression instead.
+        # Remove the entire debug statement. An empty block preserves an unbraced
+        # control-flow body; expression-position calls use a neutral void expression.
         statement = end_call + 1 < len(code) and code[end_call + 1].text == ';'
-        removals.append((token.start, end, '' if statement else '((void)0)'))
+        context = debug_context(code, i)
+        if statement and context != 'expression':
+            removals.append((token.start, code[end_call + 1].end, '{}' if context == 'body' else ''))
+        else:
+            removals.append((token.start, end, '((void)0)'))
     # Apply outermost edits once; nested dbg(...) calls are removed with their parent.
     edits = []
     for removal in sorted(removals, key=lambda item: (item[0], -item[1])):
         start, end = removal[:2]
         if edits and start < edits[-1][1]: continue
         edits.append((start, end, removal[2] if len(removal) == 3 else ''))
+    removed_lines = set()
+    for start, end, replacement in edits:
+        first = cleaned.count('\n', 0, start)
+        last = first + cleaned[start:end].count('\n')
+        removed_lines.update(range(first, last + 1))
     for start, end, replacement in reversed(edits):
+        # Preserve line numbering while editing so only newly empty lines vanish.
+        replacement += '\n' * cleaned[start:end].count('\n')
         cleaned = cleaned[:start] + replacement + cleaned[end:]
+    cleaned = ''.join(line for i, line in enumerate(cleaned.splitlines(keepends=True))
+                      if i not in removed_lines or line.strip())
     literal_lines = token_lines(tokenize(cleaned), 'literal')
     cleaned = '\n'.join(line if i in literal_lines else line.rstrip()
                         for i, line in enumerate(cleaned.splitlines())).strip() + '\n'

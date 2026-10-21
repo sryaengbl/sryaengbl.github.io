@@ -139,7 +139,6 @@ ll exp(ll base, ll exp) {
             dp[x] *= inv[subt[u]];
             dp[x] %= MOD;
             ans += dp[x];
-            ;
             self(x, u, self);
             dp[u] = dpu;
             subt[u] = subtu;
