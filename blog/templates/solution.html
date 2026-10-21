@@ -4,13 +4,38 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title }} · Solutions</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link rel="stylesheet" href="{{ url('static', path='style.css') }}">
+    <script src="{{ url('static', path='copy.js') }}" defer></script>
   </head>
   <body>
-    <main>
-      <nav><a href="{{ url_for('solutions') }}">← All solutions</a></nav>
+    <main class="solution-page">
+      <nav><a href="{{ url(back.kind, slug=back.slug) }}">← {{ back.title }}</a></nav>
       <h1>{{ title }}</h1>
-      <pre><code>{{ source }}</code></pre>
+      <div class="solution-layout">
+        {% if solve_time or implementation_time %}
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            {% if solve_time %}<dt>Solve time</dt><dd>{{ solve_time }}</dd>{% endif %}
+            {% if implementation_time %}<dt>Implementation time</dt><dd>{{ implementation_time }}</dd>{% endif %}
+          </dl>
+        </aside>
+        {% endif %}
+        <article class="solution-content">
+          {% if analysis %}
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">{{ analysis }}</div>
+          </section>
+          {% endif %}
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">{{ source_html | safe }}</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
     </main>
   </body>
 </html>

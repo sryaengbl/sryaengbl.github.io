@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/goodcyclicshifts.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/goodcyclicshifts.cpp</h1>
+      <div class="solution-layout">
+        
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            <dt>Solve time</dt><dd>15 minutes</dd>
+            <dt>Implementation time</dt><dd>33 minutes</dd>
+          </dl>
+        </aside>
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">it&#39;s well-known that the number of moves it takes to sort
+a permutation via adjacent swaps is the number of inversions
+we can prove that the number of inversions &gt;= sum (p[i]-i)/2
+consider the original sorted permutation. we can swap adjacent elements
+to make it equal to the original array a. count the number of swaps required
+this number of swaps is also going to be equal to the number of inversions
+for each individual swap, we also need to consider how (p[i]-i)/2 is affected
+firstly, whenever (p[i]-i)/2 increases from a swap, realize that this means
+the larger element of the swap was moving &#34;down&#34; and the smaller element was moving &#34;up&#34;
+this means that we must have gained an inversion too.
+
+so we try to build the minimum case where (p[i]-i)/2 does not equal # inversions
+this case is 3 2 1
+
+why? because we have
+
+1 2 3, f(p)=0, #i=0
+2 1 3, f(p)=1, #i=1
+2 3 1, f(p)=2, #i=2
+3 2 1, f(p)=2, #i=3
+
+we conjecture #i != f(p) iff 3 2 1 appears in some form
+proof: firstly, consider the reverse direction. it&#39;s clear that if
+3 .... 2 ... 1 appears, if we take #i which is the optimal number of moves,
+we can swap into ...3 2 1...
+In this case, the only way to resolve the order is to handle (3, 2, 1) which
+is the faliure case of f(p).
+
+for the forward direction, assume #i=f(p)
+start with #1 and move it to the front.
+then start with #2 and move it to the front.
+continue this way.
+this is an optimal strategy because #i decreases by one each time.
+#i can decrease by at most 1 each swap.
+
+assume WLOG that swapping #1 with p[i] decreases #inv but not f(p)
+we also have p[i+1]=1 by this WLOG assumption
+we must have p[i] &gt; i
+that means that there are n-p[i]-1 elements &gt; p[i]
+however, there are only n-p[i]-2 indexes available &gt; p[i]
+because p[i+1] is occupied by 1
+by the pigeonhole principle, there must be an element &gt; p[i]
+that occurs an element &gt;p[i] in the indexes [0... i-1].
+this means that there&#39;s a 3 2 1 in the array
+thus, #i=!f(p) iff 3 2 1 appears.
+
+implementation:
+using stacks, we can calculate l[i] and r[i].
+the naive method is
+
+for (int i = 0; i &lt; n; i++) {
+    int L = i, R = i + n - 1;
+    bool bad = 0;
+    for (int j = i; j &lt; i + n; j++) {
+        if (l[j] &gt;= L &amp;&amp; r[j] &lt;= R) bad = 1;
+    }
+    if (!bad) ans.push_back((n - i) % n);
+}
+
+however we can use math on inequalities to derive
+i &lt;= min(n-1, j, l[j])
+i &gt;= max(0, n-j+1, r[j]-n+1)
+
+then we can use prefix sums to calculate which i&#39;s work.
+
+in the future, correlating (p[i]-i)/2 with #321&#39;s could be interesting
+what does #inv - (p[i]-i)/2 equal?
+instructive problem on using inequalities to reduce time complexity</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    cin &gt;&gt; n;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; p(n), ext(<span class="cpp-number">2</span> * n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cin &gt;&gt; p[i];
+        p[i]--;
+        ext[i] = ext[i + n] = p[i];
+    }
+    stack&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt; stk;
+    stk.push({-<span class="cpp-number">1</span>, <span class="cpp-number">2</span> * n});
+    vector&lt;<span class="cpp-keyword">int</span>&gt; l(n * <span class="cpp-number">2</span>), r(n * <span class="cpp-number">2</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">2</span> * n - <span class="cpp-number">1</span>; i &gt;= <span class="cpp-number">0</span>; i--) {
+        <span class="cpp-keyword">while</span> (stk.top().first &gt; ext[i]) stk.pop();
+        r[i] = stk.top().second;
+        stk.push({ext[i], i});
+    }
+    <span class="cpp-keyword">while</span> (!stk.empty()) stk.pop();
+    stk.push({<span class="cpp-number">1e9</span>, -<span class="cpp-number">1</span>});
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; <span class="cpp-number">2</span> * n; i++) {
+        <span class="cpp-keyword">while</span> (stk.top().first &lt; ext[i]) stk.pop();
+        l[i] = stk.top().second;
+        stk.push({ext[i], i});
+    }
+    ;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; pref(n, <span class="cpp-number">0</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; <span class="cpp-number">2</span> * n; i++) {
+        <span class="cpp-keyword">int</span> mn = max(max(<span class="cpp-number">0</span>, i - n + <span class="cpp-number">1</span>), r[i] - n + <span class="cpp-number">1</span>);
+        <span class="cpp-keyword">int</span> mx = min(min(n - <span class="cpp-number">1</span>, i), l[i]);
+        <span class="cpp-keyword">if</span> (mn &gt; mx) <span class="cpp-keyword">continue</span>;
+        <span class="cpp-keyword">if</span> (mn &lt; n) pref[mn]++;
+        <span class="cpp-keyword">if</span> (mx + <span class="cpp-number">1</span> &lt; n) pref[mx + <span class="cpp-number">1</span>]--;
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; ans;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">if</span> (i) pref[i] += pref[i - <span class="cpp-number">1</span>];
+        <span class="cpp-keyword">if</span> (pref[i] == <span class="cpp-number">0</span>) ans.push_back((n - i) % n);
+    }
+    ;
+    sort(ans.begin(), ans.end());
+    cout &lt;&lt; ans.size() &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; ans.size(); i++) {
+        cout &lt;&lt; ans[i];
+        <span class="cpp-keyword">if</span> (i &lt; ans.size() - <span class="cpp-number">1</span>) cout &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span>;
+    }
+    cout &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

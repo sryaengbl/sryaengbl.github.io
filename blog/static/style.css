@@ -21,6 +21,10 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 nav { margin-bottom: 3rem; }
 pre { overflow-x: auto; padding: 1rem; background: #eeede9; }
 code { font-size: 0.9em; }
+.language-cpp .cpp-keyword { color: #62557e; }
+.language-cpp .cpp-string { color: #456553; }
+.language-cpp .cpp-number { color: #805e42; }
+.language-cpp .cpp-directive { color: #526b80; }
 img { max-width: 100%; height: auto; }
 blockquote { margin-left: 0; padding-left: 1.25rem; border-left: 2px solid #aaa; }
 table { display: block; overflow-x: auto; border-collapse: collapse; }
@@ -29,5 +33,43 @@ th, td { padding: 0.5rem 0.75rem; border: 1px solid #aaa; }
   :root { color: #e5e3dd; background: #191918; }
   .muted, nav { color: #aaa; }
   pre { background: #252524; }
+  .language-cpp .cpp-keyword { color: #b7aacb; }
+  .language-cpp .cpp-string { color: #a0b9a4; }
+  .language-cpp .cpp-number { color: #c5ab8e; }
+  .language-cpp .cpp-directive { color: #9eb5c8; }
 }
 @media (max-width: 480px) { main { margin: 3rem auto; } }
+.solution-page { max-width: 66rem; }
+.solution-page h1 { overflow-wrap: anywhere; }
+.solution-layout { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; gap: 2.5rem; align-items: start; }
+.solution-content { min-width: 0; grid-column: 1; grid-row: 1; }
+.solution-content h2:first-child { margin-top: 0; }
+.solution-content > section + section { margin-top: 3rem; }
+.code-block { position: relative; }
+.code-block pre { padding-right: 6rem; }
+.copy-code {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: 0.8rem system-ui, sans-serif;
+  cursor: pointer;
+}
+.copy-code:hover { background: rgb(128 128 128 / 12%); }
+.copy-code:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.solution-timing { grid-column: 2; grid-row: 1; font-size: 0.95rem; }
+.solution-timing dl { margin: 0; }
+.solution-timing dt { color: #666; }
+.solution-timing dd { margin: 0 0 1.5rem; }
+.solution-analysis { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (prefers-color-scheme: dark) { .solution-timing dt { color: #aaa; } }
+@media (max-width: 760px) {
+  .solution-layout { display: flex; flex-direction: column; gap: 1rem; }
+  .solution-content, .solution-timing { width: 100%; }
+  .solution-timing dl { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+  .solution-timing dd { margin: 0 1rem 0 0; }
+}

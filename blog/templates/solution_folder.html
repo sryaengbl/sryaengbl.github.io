@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} · Solutions</title>
+    <link rel="stylesheet" href="{{ url('static', path='style.css') }}">
+  </head>
+  <body>
+    <main>
+      <nav><a href="{{ url(back.kind, slug=back.slug) }}">← {{ back.title }}</a></nav>
+      <header><h1>{{ title }}</h1></header>
+      <ul>
+        {% for entry in entries %}
+        <li><a href="{{ url(entry.kind, slug=entry.slug) }}">{{ entry.title }}</a>{% if entry.kind == 'solution_folder' %} <span class="muted">({{ entry.count }} solutions)</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </main>
+  </body>
+</html>

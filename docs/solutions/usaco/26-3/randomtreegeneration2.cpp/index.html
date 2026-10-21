@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/randomtreegeneration2.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/randomtreegeneration2.cpp</h1>
+      <div class="solution-layout">
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">ingenious method from editorial
+given a tree rooted at node 0, how many topological sorts does the tree have?
+
+it starts that there are (n-1)! permutations that serve as candidates
+
+look at the subtree of node x
+the probability that node x is in the front of all its subtree elements is
+1/subt[x], where subt[x] is the size of the subtree
+
+the probability that this occurs for all nodes is
+product of 1/subt[x] for all nodes x in the tree
+this is because the order of the nodes is completely
+independent from each other in the permutation
+
+if you knew the order of all the nodes in a root&#39;s subtree
+(e.g. their permutation), you still won&#39;t know where to insert
+the root into that permutation. all possible &#34;insertions&#34; into
+the ordering are equally likely; we don&#39;t gain new information
+
+of course, this product currently includes 1/subt[0] = 1/n
+so we need to multiply by n because we are guaranteed node 0 is the root
+
+the number of toposorts is n! * prod of 1/subt[x] for all nodes x
+
+brilliant!</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">const</span> ll MOD = <span class="cpp-number">1e9</span> + <span class="cpp-number">7</span>;
+
+ll exp(ll base, ll exp) {
+    ll ret = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">while</span> (exp) {
+        <span class="cpp-keyword">if</span> (exp &amp; <span class="cpp-number">1</span>) ret = ret * base % MOD;
+        base = base * base % MOD;
+        exp &gt;&gt;= <span class="cpp-number">1</span>;
+    }
+    <span class="cpp-keyword">return</span> ret;
+}
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    cin &gt;&gt; n;
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; adj(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n - <span class="cpp-number">1</span>; i++) {
+        <span class="cpp-keyword">int</span> a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        a--, b--;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    vector&lt;ll&gt; fact(n + <span class="cpp-number">1</span>), inv(n + <span class="cpp-number">1</span>);
+    fact[<span class="cpp-number">0</span>] = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        fact[i] = fact[i - <span class="cpp-number">1</span>] * i % MOD;
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        inv[i] = exp(i, MOD - <span class="cpp-number">2</span>);
+    }
+    vector&lt;ll&gt; subt(n, <span class="cpp-number">1</span>);
+    ll ans = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">auto</span> dfs = [&amp;](<span class="cpp-keyword">int</span> u, <span class="cpp-keyword">int</span> v, <span class="cpp-keyword">auto</span>&amp;&amp; self) -&gt; <span class="cpp-keyword">void</span> {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">auto</span> x : adj[u]) {
+            <span class="cpp-keyword">if</span> (x == v) <span class="cpp-keyword">continue</span>;
+            self(x, u, self);
+            subt[u] += subt[x];
+        }
+        ans *= inv[subt[u]];
+        ans %= MOD;
+    };
+    dfs(<span class="cpp-number">0</span>, -<span class="cpp-number">1</span>, dfs);
+    ll curr = ans;
+    <span class="cpp-keyword">auto</span> dfs2 = [&amp;](<span class="cpp-keyword">int</span> u, <span class="cpp-keyword">int</span> v, <span class="cpp-keyword">auto</span>&amp;&amp; self) -&gt; <span class="cpp-keyword">void</span> {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">auto</span> x : adj[u]) {
+            <span class="cpp-keyword">if</span> (x == v) <span class="cpp-keyword">continue</span>;
+            ll subtx = subt[x], subtu = subt[u], pc = curr;
+            curr = curr * subt[u] % MOD;
+            subt[u] -= subt[x];
+            curr = curr * inv[subt[u]] % MOD;
+
+            curr = curr * subt[x] % MOD;
+            subt[x] += subt[u];
+            curr = curr * inv[subt[x]] % MOD;
+
+            ans += curr;
+            self(x, u, self);
+            subt[x] = subtx, subt[u] = subtu, curr = pc;
+        }
+    };
+    dfs2(<span class="cpp-number">0</span>, -<span class="cpp-number">1</span>, dfs2);
+    ans %= MOD;
+    cout &lt;&lt; ans * exp(fact[n - <span class="cpp-number">1</span>], MOD - <span class="cpp-number">2</span>) % MOD &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

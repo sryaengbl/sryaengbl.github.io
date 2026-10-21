@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/pickingflowers.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/pickingflowers.cpp</h1>
+      <div class="solution-layout">
+        
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            <dt>Solve time</dt><dd>10 minutes</dd>
+            <dt>Implementation time</dt><dd>50 minutes (gpt-assisted)</dd>
+          </dl>
+        </aside>
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">algorithm is easy enough to come up with
+each step must increase the distance from 1
+therefore each flower must have a further distance than the previous
+we just need to mark all nodes that are on route in the sequence of flowers
+and all nodes that are on route from the last flower to destination barns
+
+then do so in reverse. which barns are on route from destinations to the front
+if a node is on route from the start and end, it&#39;s valid overall
+
+implementing this is terrible, but the important edge cases are
+1. you can visit destination barns before you visit the last farm
+2. you can turn destination barns into flower fieds
+
+some implementation tricks:
+store req[dist]. if any path of distance i must go through node x
+then req[i] = x
+this means that our bfs can operate such that the elements in the queue
+have different depths from each other.
+To check if a node is on route, run a bfs from the front and back
+
+takeaways: traversal order is fixed, req[] trick.
+To check if a node is on route, run a bfs from the front and back</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n, m, k, l;
+    cin &gt;&gt; n &gt;&gt; m &gt;&gt; k &gt;&gt; l;
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; adj(n);
+    vector&lt;<span class="cpp-keyword">int</span>&gt; f(k), d(l);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; k; i++) {
+        cin &gt;&gt; f[i];
+        --f[i];
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; l; i++) {
+        cin &gt;&gt; d[i];
+        --d[i];
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; m; i++) {
+        <span class="cpp-keyword">int</span> a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        --a, --b;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; dist(n, <span class="cpp-number">1e9</span>);
+    queue&lt;<span class="cpp-keyword">int</span>&gt; q;
+    dist[<span class="cpp-number">0</span>] = <span class="cpp-number">0</span>;
+    q.push(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">while</span> (!q.empty()) {
+        <span class="cpp-keyword">int</span> c = q.front();
+        q.pop();
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : adj[c]) {
+            <span class="cpp-keyword">if</span> (dist[x] == <span class="cpp-number">1e9</span>) {
+                dist[x] = dist[c] + <span class="cpp-number">1</span>;
+                q.push(x);
+            }
+        }
+    }
+    f.push_back(<span class="cpp-number">0</span>);
+    sort(f.begin(), f.end(), [&amp;](<span class="cpp-keyword">int</span> a, <span class="cpp-keyword">int</span> b) { <span class="cpp-keyword">return</span> dist[a] &lt; dist[b]; });
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt; (<span class="cpp-keyword">int</span>)f.size(); i++) {
+        <span class="cpp-keyword">if</span> (dist[f[i]] == dist[f[i - <span class="cpp-number">1</span>]]) {
+            cout &lt;&lt; string(n - <span class="cpp-number">1</span>, <span class="cpp-string">&#x27;0&#x27;</span>) &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+            <span class="cpp-keyword">return</span>;
+        }
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; req(n, -<span class="cpp-number">1</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : f) {
+        req[dist[x]] = x;
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; possible;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : d) {
+        <span class="cpp-keyword">if</span> (dist[x] &gt;= dist[f.back()]) {
+            possible.push_back(x);
+        }
+    }
+    <span class="cpp-keyword">if</span> (possible.empty()) {
+        cout &lt;&lt; string(n - <span class="cpp-number">1</span>, <span class="cpp-string">&#x27;0&#x27;</span>) &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+        <span class="cpp-keyword">return</span>;
+    }
+    vector&lt;<span class="cpp-keyword">bool</span>&gt; g(n, <span class="cpp-number">0</span>);
+    g[<span class="cpp-number">0</span>] = <span class="cpp-number">1</span>;
+    q.push(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">while</span> (!q.empty()) {
+        <span class="cpp-keyword">int</span> c = q.front();
+        q.pop();
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : adj[c]) {
+            <span class="cpp-keyword">if</span> (dist[x] != dist[c] + <span class="cpp-number">1</span>) <span class="cpp-keyword">continue</span>;
+            <span class="cpp-keyword">if</span> (req[dist[x]] != -<span class="cpp-number">1</span> &amp;&amp; req[dist[x]] != x) <span class="cpp-keyword">continue</span>;
+            <span class="cpp-keyword">if</span> (g[x]) <span class="cpp-keyword">continue</span>;
+            g[x] = <span class="cpp-number">1</span>;
+            q.push(x);
+        }
+    }
+    vector&lt;<span class="cpp-keyword">bool</span>&gt; g2(n, <span class="cpp-number">0</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : possible) {
+        <span class="cpp-keyword">if</span> (req[dist[x]] != -<span class="cpp-number">1</span> &amp;&amp; req[dist[x]] != x) <span class="cpp-keyword">continue</span>;
+        <span class="cpp-keyword">if</span> (!g2[x]) {
+            g2[x] = <span class="cpp-number">1</span>;
+            q.push(x);
+        }
+    }
+    <span class="cpp-keyword">while</span> (!q.empty()) {
+        <span class="cpp-keyword">int</span> c = q.front();
+        q.pop();
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> x : adj[c]) {
+            <span class="cpp-keyword">if</span> (dist[x] != dist[c] - <span class="cpp-number">1</span>) <span class="cpp-keyword">continue</span>;
+            <span class="cpp-keyword">if</span> (req[dist[x]] != -<span class="cpp-number">1</span> &amp;&amp; req[dist[x]] != x) <span class="cpp-keyword">continue</span>;
+            <span class="cpp-keyword">if</span> (g2[x]) <span class="cpp-keyword">continue</span>;
+            g2[x] = <span class="cpp-number">1</span>;
+            q.push(x);
+        }
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt; n; i++) {
+        cout &lt;&lt; (g[i] &amp;&amp; g2[i] ? <span class="cpp-string">&#x27;1&#x27;</span> : <span class="cpp-string">&#x27;0&#x27;</span>);
+    }
+    cout &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

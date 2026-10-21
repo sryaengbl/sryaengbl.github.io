@@ -4,18 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Solutions · Blog</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link rel="stylesheet" href="{{ url('static', path='style.css') }}">
   </head>
   <body>
     <main>
-      <nav><a href="{{ url_for('index') }}">← All posts</a></nav>
+      <nav><a href="{{ url('index') }}">← All posts</a></nav>
       <header><h1>Solutions</h1><p class="muted">Competitive programming source code.</p></header>
       {% for platform in platforms %}
       <section>
         <h2>{{ platform | upper if platform in ['usaco', 'icpc'] else 'Codeforces' }}</h2>
         <ul>
-        {% for entry in solutions if entry.platform == platform %}
-          <li><a href="{{ url_for('solution', slug=entry.slug) }}">{{ entry.title }}</a></li>
+        {% for entry in platform_entries[platform] %}
+          <li><a href="{{ url(entry.kind, slug=entry.slug) }}">{{ entry.title }}</a>{% if entry.kind == 'solution_folder' %} <span class="muted">({{ entry.count }} solutions)</span>{% endif %}</li>
         {% else %}
           <li class="muted">No solutions yet.</li>
         {% endfor %}

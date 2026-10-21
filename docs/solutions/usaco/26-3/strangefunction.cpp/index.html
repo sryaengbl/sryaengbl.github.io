@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/strangefunction.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/strangefunction.cpp</h1>
+      <div class="solution-layout">
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+ll MOD = <span class="cpp-number">1e9</span> + <span class="cpp-number">7</span>;
+
+<span class="cpp-keyword">void</span> solve() {
+    string str;
+    cin &gt;&gt; str;
+    reverse(str.begin(), str.end());
+    ll c = <span class="cpp-number">1</span>, val = <span class="cpp-number">0</span>;
+    <span class="cpp-keyword">bool</span> form = <span class="cpp-number">1</span>, ez = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; <span class="cpp-keyword">int</span>(str.size()); i++) {
+        <span class="cpp-keyword">if</span> (str[i] - <span class="cpp-string">&#x27;0&#x27;</span> &gt; <span class="cpp-number">1</span>) form = <span class="cpp-number">0</span>;
+        <span class="cpp-keyword">if</span> ((str[i] - <span class="cpp-string">&#x27;0&#x27;</span>) &amp; <span class="cpp-number">1</span>) {
+            <span class="cpp-keyword">if</span> (i == <span class="cpp-number">0</span>) ez = <span class="cpp-number">0</span>;
+            val += c;
+            val %= MOD;
+        }
+        c = (c * <span class="cpp-number">2</span>) % MOD;
+    }
+    <span class="cpp-keyword">if</span> (ez) {
+        val = val * <span class="cpp-number">500000004</span> % MOD * <span class="cpp-number">3</span> % MOD;
+    } <span class="cpp-keyword">else</span> {
+        val -= <span class="cpp-number">1</span>;
+        val = val * <span class="cpp-number">500000004</span> % MOD * <span class="cpp-number">3</span> % MOD;
+        val++;
+    }
+    <span class="cpp-keyword">if</span> (!form) val++;
+    cout &lt;&lt; val &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

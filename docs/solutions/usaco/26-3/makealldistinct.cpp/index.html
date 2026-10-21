@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/makealldistinct.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/makealldistinct.cpp</h1>
+      <div class="solution-layout">
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n, k;
+    cin &gt;&gt; n &gt;&gt; k;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; a(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cin &gt;&gt; a[i];
+    }
+    sort(a.begin(), a.end());
+    <span class="cpp-keyword">if</span> (k &lt; <span class="cpp-number">0</span>) {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+            a[i] = -a[i];
+        }
+        reverse(a.begin(), a.end());
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = n - <span class="cpp-number">1</span>; i &gt;= <span class="cpp-number">0</span>; i--) {
+            a[i] -= a[<span class="cpp-number">0</span>] - <span class="cpp-number">1</span>;
+        }
+        k = -k;
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; cnt(n + <span class="cpp-number">1</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cnt[a[i]]++;
+    }
+    ;
+    ll ans = <span class="cpp-number">0</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n - k; i++) {
+        <span class="cpp-keyword">if</span> (cnt[i] &gt; <span class="cpp-number">1</span>) {
+            ans += cnt[i] - <span class="cpp-number">1</span>;
+            cnt[i + k] += cnt[i] - <span class="cpp-number">1</span>;
+        }
+    }
+    ;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = n - k + <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        ans += (ll)(cnt[i] - <span class="cpp-number">1</span>) * (cnt[i]) / <span class="cpp-number">2</span>;
+    }
+    cout &lt;&lt; ans &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

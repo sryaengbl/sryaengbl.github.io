@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/clash.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/clash.cpp</h1>
+      <div class="solution-layout">
+        
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            <dt>Solve time</dt><dd>18 mins (read problem wrong, read editorial; didn&#39;t realize wc needed to be played)</dd>
+            <dt>Implementation time</dt><dd>15 minutes</dd>
+          </dl>
+        </aside>
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">keys to solution: firstly, realize that if wincon is in hand, we must play it.
+therefore, there&#39;s a clear lexigraphic order into how cards are played
+assuming we weren&#39;t trying to maximize wc&#39;s, we would use a prq
+forcing wincons to be played means that the naive solution works anyways
+aside from that, it&#39;s just binary search + mod to reduce cycles</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> n, h;
+    cin &gt;&gt; n &gt;&gt; h;
+    vector&lt;ll&gt; a(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cin &gt;&gt; a[i];
+    }
+    <span class="cpp-keyword">int</span> k;
+    cin &gt;&gt; k;
+    vector&lt;<span class="cpp-keyword">bool</span>&gt; wc(n, <span class="cpp-number">0</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; k; i++) {
+        <span class="cpp-keyword">int</span> x;
+        cin &gt;&gt; x;
+        wc[x - <span class="cpp-number">1</span>] = <span class="cpp-number">1</span>;
+    }
+    priority_queue&lt;pair&lt;<span class="cpp-keyword">int</span>, ll&gt;&gt; pq;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; h; i++) {
+        pq.push({wc[i], -a[i]});
+    }
+    vector&lt;pair&lt;<span class="cpp-keyword">int</span>, ll&gt;&gt; pref(n - h + <span class="cpp-number">2</span>);
+    pref[<span class="cpp-number">0</span>] = {<span class="cpp-number">0</span>, <span class="cpp-number">0</span>};
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n - h + <span class="cpp-number">1</span>; i++) {
+        <span class="cpp-keyword">auto</span> [w, c] = pq.top();
+        pq.pop();
+        pref[i + <span class="cpp-number">1</span>] = pref[i];
+        pref[i + <span class="cpp-number">1</span>].first += w;
+        pref[i + <span class="cpp-number">1</span>].second += -c;
+        pq.push({wc[h + i], -a[h + i]});
+    }
+    ;
+    <span class="cpp-keyword">int</span> q;
+    cin &gt;&gt; q;
+    <span class="cpp-keyword">while</span> (q--) {
+        ll s;
+        cin &gt;&gt; s;
+        ll ans = s / (pref[n - h + <span class="cpp-number">1</span>].second) * pref[n - h + <span class="cpp-number">1</span>].first;
+        s %= pref[n - h + <span class="cpp-number">1</span>].second;
+        <span class="cpp-keyword">int</span> l = <span class="cpp-number">0</span>, r = n - h;
+        <span class="cpp-keyword">while</span> (l &lt; r) {
+            <span class="cpp-keyword">int</span> m = (l + r + <span class="cpp-number">1</span>) / <span class="cpp-number">2</span>;
+            <span class="cpp-keyword">if</span> (pref[m].second &lt;= s)
+                l = m;
+            <span class="cpp-keyword">else</span>
+                r = m - <span class="cpp-number">1</span>;
+        }
+        cout &lt;&lt; ans + pref[l].first &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

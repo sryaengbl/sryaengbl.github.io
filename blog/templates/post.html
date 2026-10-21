@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ post.title }} · Blog</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link rel="stylesheet" href="{{ url('static', path='style.css') }}">
   </head>
   <body>
     <main>
-      <nav aria-label="Navigation"><a href="{{ url_for('index') }}">← All posts</a></nav>
+      <nav aria-label="Navigation"><a href="{{ url('index') }}">← All posts</a></nav>
       <article>
         <header>
           <p class="muted">{{ post.section_label }}</p>

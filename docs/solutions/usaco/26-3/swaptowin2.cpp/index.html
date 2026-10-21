@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/swaptowin2.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/swaptowin2.cpp</h1>
+      <div class="solution-layout">
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n, m;
+    cin &gt;&gt; n &gt;&gt; m;
+    string t;
+    cin &gt;&gt; t;
+    vector&lt;string&gt; str(n);
+    vector&lt;set&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt;&gt; v(<span class="cpp-number">26</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        string x;
+        cin &gt;&gt; x;
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; m; j++) {
+            v[x[j] - <span class="cpp-string">&#x27;a&#x27;</span>].insert({i, j});
+        }
+        str[i] = x;
+    }
+    vector&lt;tuple&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt; ans;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; m; i++) {
+        <span class="cpp-keyword">if</span> (str[<span class="cpp-number">0</span>][i] != t[i]) {
+            <span class="cpp-keyword">int</span> at = -<span class="cpp-number">1</span>;
+            <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = i; j &lt; m; j++) {
+                <span class="cpp-keyword">if</span> (str[<span class="cpp-number">0</span>][j] == t[i]) {
+                    at = j;
+                    <span class="cpp-keyword">break</span>;
+                }
+            }
+            <span class="cpp-keyword">if</span> (at &gt;= <span class="cpp-number">0</span>) {
+                ans.push_back({<span class="cpp-number">1</span>, <span class="cpp-number">1</span>, i + <span class="cpp-number">1</span>, at + <span class="cpp-number">1</span>});
+                swap(str[<span class="cpp-number">0</span>][i], str[<span class="cpp-number">0</span>][at]);
+            }
+        }
+    }
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; has(n, vector&lt;<span class="cpp-keyword">int</span>&gt;(<span class="cpp-number">26</span>));
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; m; j++) {
+            has[i][str[i][j] - <span class="cpp-string">&#x27;a&#x27;</span>]++;
+        }
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; m; i++) {
+        <span class="cpp-keyword">if</span> (str[<span class="cpp-number">0</span>][i] == t[i]) <span class="cpp-keyword">continue</span>;
+        <span class="cpp-keyword">bool</span> fixed = <span class="cpp-number">0</span>;
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">1</span>; j &lt; n &amp;&amp; !fixed; j++) {
+            <span class="cpp-keyword">if</span> (has[j][t[i] - <span class="cpp-string">&#x27;a&#x27;</span>]) {
+                <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> k = <span class="cpp-number">0</span>; k &lt; m &amp;&amp; !fixed; k++) {
+                    <span class="cpp-keyword">if</span> (str[j][k] != t[i]) <span class="cpp-keyword">continue</span>;
+                    <span class="cpp-keyword">if</span> (k != i) ans.push_back({<span class="cpp-number">1</span>, j + <span class="cpp-number">1</span>, k + <span class="cpp-number">1</span>, i + <span class="cpp-number">1</span>});
+                    swap(str[j][i], str[j][k]);
+                    ans.push_back({<span class="cpp-number">2</span>, <span class="cpp-number">1</span>, j + <span class="cpp-number">1</span>, i + <span class="cpp-number">1</span>});
+                    has[j][str[j][i] - <span class="cpp-string">&#x27;a&#x27;</span>]--;
+                    swap(str[<span class="cpp-number">0</span>][i], str[j][i]);
+                    has[j][str[j][i] - <span class="cpp-string">&#x27;a&#x27;</span>]++;
+                    fixed = <span class="cpp-number">1</span>;
+                }
+            }
+        }
+    }
+    cout &lt;&lt; ans.size() &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">auto</span> x : ans) {
+        <span class="cpp-keyword">int</span> a, b, c, d;
+        tie(a, b, c, d) = x;
+        cout &lt;&lt; a &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span> &lt;&lt; b &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span> &lt;&lt; c &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span> &lt;&lt; d &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    }
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

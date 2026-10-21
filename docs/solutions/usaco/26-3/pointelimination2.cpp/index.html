@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/pointelimination2.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/pointelimination2.cpp</h1>
+      <div class="solution-layout">
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+
+
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n, d = <span class="cpp-number">2</span>;
+    cin &gt;&gt; n;
+    set&lt;<span class="cpp-keyword">int</span>&gt; uq;
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; a(n, vector&lt;<span class="cpp-keyword">int</span>&gt;(d));
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; d; j++) {
+            cin &gt;&gt; a[i][j];
+            uq.insert(a[i][j]);
+            uq.insert(a[i][j] + <span class="cpp-number">1</span>);
+        }
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; cc(uq.begin(), uq.end());
+    <span class="cpp-keyword">int</span> mx = uq.size();
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; v(d, vector&lt;<span class="cpp-keyword">int</span>&gt;(mx));
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; d; j++) {
+            a[i][j] = lower_bound(cc.begin(), cc.end(), a[i][j]) - cc.begin();
+            v[j][a[i][j]]++;
+        }
+    }
+    <span class="cpp-keyword">bool</span> good = <span class="cpp-number">1</span>;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; f(d, <span class="cpp-number">0</span>), tt(d);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; d &amp;&amp; good; i++) {
+        vector&lt;<span class="cpp-keyword">int</span>&gt; s(mx), t(mx);
+
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; mx &amp;&amp; good; j++) {
+            <span class="cpp-keyword">int</span> c = v[i][j];
+            <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> k = <span class="cpp-number">1</span>; k &lt; d; k++) {
+                <span class="cpp-keyword">if</span> (j - k &gt;= <span class="cpp-number">0</span>) c -= t[j - k];
+            }
+            <span class="cpp-keyword">if</span> (c &lt; <span class="cpp-number">0</span>) {
+                good = <span class="cpp-number">0</span>;
+                <span class="cpp-keyword">break</span>;
+            }
+            t[j] = c % d;
+            s[j] = (c - t[j]) / d;
+        }
+        <span class="cpp-keyword">if</span> (!good) <span class="cpp-keyword">break</span>;
+        tt[i] = accumulate(t.begin(), t.end(), <span class="cpp-number">0</span>);
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j + d &lt;= mx; j++) {
+            <span class="cpp-keyword">int</span> amt = <span class="cpp-number">1e9</span>;
+            <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> k = <span class="cpp-number">0</span>; k &lt; d; k++) {
+                amt = min(amt, s[j + k]);
+            }
+            f[i] += amt * d;
+            <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> k = <span class="cpp-number">0</span>; k &lt; d; k++) {
+                s[j + k] -= amt;
+            }
+        }
+    }
+    <span class="cpp-keyword">int</span> lo = accumulate(tt.begin(), tt.end(), <span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> hi = lo + accumulate(f.begin(), f.end(), <span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> target = n / d;
+    <span class="cpp-keyword">if</span> (good &amp;&amp; n % d == <span class="cpp-number">0</span> &amp;&amp; lo &lt;= target &amp;&amp; target &lt;= hi &amp;&amp; (target - lo) % d == <span class="cpp-number">0</span>) {
+        cout &lt;&lt; <span class="cpp-string">&quot;YES\n&quot;</span>;
+    } <span class="cpp-keyword">else</span> {
+        cout &lt;&lt; <span class="cpp-string">&quot;NO\n&quot;</span>;
+    }
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

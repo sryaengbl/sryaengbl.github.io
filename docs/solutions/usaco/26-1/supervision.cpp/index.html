@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-1/supervision.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../index.html">← All solutions</a></nav>
+      <h1>usaco/26-1/supervision.cpp</h1>
+      <div class="solution-layout">
+        
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            <dt>Solve time</dt><dd>15 minutes</dd>
+            <dt>Implementation time</dt><dd>70 minutes</dd>
+          </dl>
+        </aside>
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">the idea is that we keep a dp for all coaches.
+
+dp[j] = number of subsets that include the jth coach.
+
+for all dp[j], there is a set of campers that the jth coach can cover
+
+let the number of campers that coach j covers be cov(j)
+
+we get a basic recurrence
+
+dp[j] = 2^cov(j) * dp[i] for all i &lt; j
+
+however, notice that this isn&#39;t fully accurate, because if
+coach j-1 covered a camper that coach j also covers, this camper is double counted
+
+to correct, we have dp[j] = 2^cov(j) * dp[i]/2^overlap(i, j) for all i &lt; j
+
+overlap (i, j) is the number of campers that coaches i and j share coverage in
+
+so then the question is how we can update this DP quickly
+doing so naively is of course o(n^2), and can be done as follows
+
+for (int i = 1; i &lt;= c.size(); i++) {
+     for (int j = i - 1; j &gt;= 0; j--) {
+         int r = (j ? mp(c[j - 1] + d) : 0);
+         int l = mp(c[i - 1]);
+         int overlap = max(0, countcampers(l, r));
+         dp[i] += p2[cov(l) - overlap] * dp[j];
+         dp[i] %= MOD;
+     }
+     ans += dp[i];
+ }
+
+so how does o(n^2) become o(nlogn)?
+the trick is that if we order the cows and coaches left to right, processing by index,
+if the current index is a camper, any coach to the right will no longer ever
+be able to cover the current index.
+
+as we move left to right, overlap (i, x) is monotonically decreasing
+and it decreases specifically when the processed index moves past a covered cow
+therefore, maintain a segment tree of dp[i]/overlap(i, x), where
+overlap(i, x) is initialized to be cov(i) for the current coach
+
+if the processed cow is a coach, calculate dp[j] with the formula
+ otherwise, it&#39;s a camper, and we update dp[i]/2^overlap(i, x) by
+ multiplying the elements by 2.
+
+we use coordinate compression to ensure that all indexes stay in O(n)
+to save memory for our segment tree
+
+important edge case is if coach[0] is at position 0. That&#39;s why
+we push (-1) into the coordinate compression: to ensure no collision here</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">const</span> ll MOD = <span class="cpp-number">1e9</span> + <span class="cpp-number">7</span>;
+
+<span class="cpp-keyword">struct</span> SegTree {
+    <span class="cpp-keyword">int</span> n;
+    vector&lt;<span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>&gt; tree, lazy;
+
+    SegTree(<span class="cpp-keyword">int</span> n) : n(n), tree(<span class="cpp-number">4</span> * n, <span class="cpp-number">0</span>), lazy(<span class="cpp-number">4</span> * n, <span class="cpp-number">1</span>) {}
+
+    <span class="cpp-keyword">void</span> apply(<span class="cpp-keyword">int</span> v, <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> x) {
+        tree[v] = tree[v] * x % MOD;
+        lazy[v] = lazy[v] * x % MOD;
+    }
+
+    <span class="cpp-keyword">void</span> push(<span class="cpp-keyword">int</span> v) {
+        <span class="cpp-keyword">if</span> (lazy[v] != <span class="cpp-number">1</span>) {
+            apply(v * <span class="cpp-number">2</span>, lazy[v]);
+            apply(v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>, lazy[v]);
+            lazy[v] = <span class="cpp-number">1</span>;
+        }
+    }
+
+    <span class="cpp-keyword">void</span> set(<span class="cpp-keyword">int</span> v, <span class="cpp-keyword">int</span> tl, <span class="cpp-keyword">int</span> tr, <span class="cpp-keyword">int</span> i, <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> x) {
+        <span class="cpp-keyword">if</span> (tl == tr) {
+            tree[v] = (x % MOD + MOD) % MOD;
+            lazy[v] = <span class="cpp-number">1</span>;
+            <span class="cpp-keyword">return</span>;
+        }
+        push(v);
+        <span class="cpp-keyword">int</span> tm = (tl + tr) / <span class="cpp-number">2</span>;
+        <span class="cpp-keyword">if</span> (i &lt;= tm)
+            set(v * <span class="cpp-number">2</span>, tl, tm, i, x);
+        <span class="cpp-keyword">else</span>
+            set(v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>, tm + <span class="cpp-number">1</span>, tr, i, x);
+        tree[v] = (tree[v * <span class="cpp-number">2</span>] + tree[v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>]) % MOD;
+    }
+
+    <span class="cpp-keyword">void</span> dbl(<span class="cpp-keyword">int</span> v, <span class="cpp-keyword">int</span> tl, <span class="cpp-keyword">int</span> tr, <span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) {
+        <span class="cpp-keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) {
+            apply(v, <span class="cpp-number">2</span>);
+            <span class="cpp-keyword">return</span>;
+        }
+        push(v);
+        <span class="cpp-keyword">int</span> tm = (tl + tr) / <span class="cpp-number">2</span>;
+        <span class="cpp-keyword">if</span> (l &lt;= tm) dbl(v * <span class="cpp-number">2</span>, tl, tm, l, r);
+        <span class="cpp-keyword">if</span> (r &gt; tm) dbl(v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>, tm + <span class="cpp-number">1</span>, tr, l, r);
+        tree[v] = (tree[v * <span class="cpp-number">2</span>] + tree[v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>]) % MOD;
+    }
+
+    <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> sum(<span class="cpp-keyword">int</span> v, <span class="cpp-keyword">int</span> tl, <span class="cpp-keyword">int</span> tr, <span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) {
+        <span class="cpp-keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) <span class="cpp-keyword">return</span> tree[v];
+        push(v);
+        <span class="cpp-keyword">int</span> tm = (tl + tr) / <span class="cpp-number">2</span>;
+        <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> ans = <span class="cpp-number">0</span>;
+        <span class="cpp-keyword">if</span> (l &lt;= tm) ans += sum(v * <span class="cpp-number">2</span>, tl, tm, l, r);
+        <span class="cpp-keyword">if</span> (r &gt; tm) ans += sum(v * <span class="cpp-number">2</span> + <span class="cpp-number">1</span>, tm + <span class="cpp-number">1</span>, tr, l, r);
+        <span class="cpp-keyword">return</span> ans % MOD;
+    }
+
+    <span class="cpp-keyword">void</span> set(<span class="cpp-keyword">int</span> i, <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> x) { set(<span class="cpp-number">1</span>, <span class="cpp-number">0</span>, n - <span class="cpp-number">1</span>, i, x); }
+    <span class="cpp-keyword">void</span> dbl(<span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) { dbl(<span class="cpp-number">1</span>, <span class="cpp-number">0</span>, n - <span class="cpp-number">1</span>, l, r); }
+    <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span> sum(<span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) { <span class="cpp-keyword">return</span> sum(<span class="cpp-number">1</span>, <span class="cpp-number">0</span>, n - <span class="cpp-number">1</span>, l, r); }
+};
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n, d;
+    cin &gt;&gt; n &gt;&gt; d;
+    vector&lt;ll&gt; cc;
+    vector&lt;pair&lt;ll, <span class="cpp-keyword">int</span>&gt;&gt; v(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cin &gt;&gt; v[i].first &gt;&gt; v[i].second;
+        cc.push_back(v[i].first);
+        cc.push_back(v[i].first + d);
+    }
+    cc.push_back(-<span class="cpp-number">1</span>);
+    sort(cc.begin(), cc.end());
+    cc.erase(unique(cc.begin(), cc.end()), cc.end());
+    vector&lt;ll&gt; p2(n + <span class="cpp-number">1</span>);
+    p2[<span class="cpp-number">0</span>] = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        p2[i] = p2[i - <span class="cpp-number">1</span>] * <span class="cpp-number">2</span> % MOD;
+    }
+    vector&lt;<span class="cpp-keyword">int</span>&gt; g;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">if</span> (!v[i].second) g.push_back(v[i].first);
+    }
+    <span class="cpp-keyword">auto</span> mp = [&amp;](ll x) -&gt; <span class="cpp-keyword">int</span> { <span class="cpp-keyword">return</span> lower_bound(cc.begin(), cc.end(), x) - cc.begin(); };
+    vector&lt;<span class="cpp-keyword">int</span>&gt; campers(cc.size());
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; (<span class="cpp-keyword">int</span>)g.size(); i++) {
+        campers[mp(g[i])]++;
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt; (<span class="cpp-keyword">int</span>)cc.size(); i++) {
+        campers[i] += campers[i - <span class="cpp-number">1</span>];
+    }
+    <span class="cpp-keyword">auto</span> countcampers = [&amp;](<span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) -&gt; <span class="cpp-keyword">int</span> {
+        <span class="cpp-keyword">return</span> max(<span class="cpp-number">0</span>, campers[r] - (l ? campers[l - <span class="cpp-number">1</span>] : <span class="cpp-number">0</span>));
+    };
+    <span class="cpp-keyword">auto</span> cov = [&amp;](<span class="cpp-keyword">int</span> x) -&gt; <span class="cpp-keyword">int</span> { <span class="cpp-keyword">return</span> countcampers(x, mp(cc[x] + d)); };
+
+    SegTree tree(cc.size());
+    tree.set(<span class="cpp-number">0</span>, <span class="cpp-number">1</span>);
+    ll ans = <span class="cpp-number">0</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">int</span> idx = mp(v[i].first);
+        <span class="cpp-keyword">if</span> (v[i].second) {
+            ll curr = tree.sum(<span class="cpp-number">0</span>, idx);
+            tree.set(idx, curr);
+            ans += curr * p2[cov(idx)] % MOD;
+            ans %= MOD;
+        } <span class="cpp-keyword">else</span> {
+            <span class="cpp-keyword">int</span> pidx = mp(v[i].first - d);
+            tree.dbl(pidx, idx);
+            tree.set(<span class="cpp-number">0</span>, <span class="cpp-number">1</span>);
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    solve();
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

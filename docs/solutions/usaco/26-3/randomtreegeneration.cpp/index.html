@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-3/randomtreegeneration.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-3/index.html">← 26-3</a></nav>
+      <h1>usaco/26-3/randomtreegeneration.cpp</h1>
+      <div class="solution-layout">
+        
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+            <dt>Solve time</dt><dd>37 minutes</dd>
+            <dt>Implementation time</dt><dd>40 minutes</dd>
+          </dl>
+        </aside>
+        
+        <article class="solution-content">
+          
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">my first approach was to assume that every node had an equal likelihood of being =1
+however, this is misguided. because the algorithm doesn&#39;t truly make a random tree,
+not all nodes are equally likely to be picked.
+then my intuition become to calculate for each node
+(prob that node was root) * (prob to generate this tree given this node is root)
+
+however, calculating (prof that node was root) is somewhat not-straightforward.
+
+so I scrapped these couple of ideas for now to solve a subproblem.
+given that node 0 is the actual root (big assumption, but useful to understand the problem)
+what is the probability that the tree was generated?
+well, given a valid ordering of the nodes to be added, the probability is 1/(n-1)!
+so then the solution 1/(n-1)! * (# of valid orderings)
+
+that&#39;s a very similar problem to counting the number of topological sorts
+so then I derived the formula for the number of topo sorts of a given tree
+this is done recursively. dp[x] stores the answer for the subtree rooted at [x]
+
+dp[x]=(subt[x]-1)! / (subt[c1]! * subt[c2]! * ... * subt[cm]!) * dp[c1] * ... * dp[cm]
+
+where m is the number of children and ci is the ith child
+
+but wait. once we count one toposort for a given root node,
+this is guaranteed to be unique, since the toposort is rooted at that specific node
+AND all valid solutions are counted if we run this dp for all nodes
+
+there are n! assignments of indexes. each assignment of indexes is bijective with a toposort
+
+therefore the answer is 1/(n! * (n-1)!) * # toposorts rooted at all nodes
+
+the number of toposorts at node 0 can be calculated easily.
+then the rest of the problem is rerooting the tree.
+rerooting is where most of the implementation difficulties come from
+but it is doable just by looking at the formulas properly.
+i&#39;d like to find a way to implement the rerooting more cleanly...</div>
+          </section>
+          
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">const</span> ll MOD = <span class="cpp-number">1e9</span> + <span class="cpp-number">7</span>;
+
+ll exp(ll base, ll exp) {
+    ll ret = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">while</span> (exp) {
+        <span class="cpp-keyword">if</span> (exp &amp; <span class="cpp-number">1</span>) ret = ret * base % MOD;
+        base = base * base % MOD;
+        exp &gt;&gt;= <span class="cpp-number">1</span>;
+    }
+    <span class="cpp-keyword">return</span> ret;
+}
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    cin &gt;&gt; n;
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; adj(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n - <span class="cpp-number">1</span>; i++) {
+        <span class="cpp-keyword">int</span> a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        a--, b--;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    vector&lt;ll&gt; fact(n + <span class="cpp-number">1</span>), inv(n + <span class="cpp-number">1</span>);
+    fact[<span class="cpp-number">0</span>] = <span class="cpp-number">1</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        fact[i] = fact[i - <span class="cpp-number">1</span>] * i % MOD;
+    }
+    inv[n] = exp(fact[n], MOD - <span class="cpp-number">2</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = n - <span class="cpp-number">1</span>; i &gt;= <span class="cpp-number">0</span>; i--) {
+        inv[i] = inv[i + <span class="cpp-number">1</span>] * (i + <span class="cpp-number">1</span>) % MOD;
+    }
+    vector&lt;ll&gt; subt(n, <span class="cpp-number">1</span>), dp(n, <span class="cpp-number">1</span>);
+    <span class="cpp-keyword">auto</span> dfs = [&amp;](<span class="cpp-keyword">int</span> u, <span class="cpp-keyword">int</span> v, <span class="cpp-keyword">auto</span>&amp;&amp; self) -&gt; <span class="cpp-keyword">void</span> {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">auto</span> x : adj[u]) {
+            <span class="cpp-keyword">if</span> (x == v) <span class="cpp-keyword">continue</span>;
+            self(x, u, self);
+            subt[u] += subt[x];
+            dp[u] = dp[u] * dp[x] % MOD;
+            dp[u] = dp[u] * inv[subt[x]] % MOD;
+        }
+        dp[u] = dp[u] * fact[subt[u] - <span class="cpp-number">1</span>] % MOD;
+    };
+    dfs(<span class="cpp-number">0</span>, -<span class="cpp-number">1</span>, dfs);
+    ll ans = dp[<span class="cpp-number">0</span>];
+    <span class="cpp-keyword">auto</span> dfs2 = [&amp;](<span class="cpp-keyword">int</span> u, <span class="cpp-keyword">int</span> v, <span class="cpp-keyword">auto</span>&amp;&amp; self) -&gt; <span class="cpp-keyword">void</span> {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">auto</span> x : adj[u]) {
+            <span class="cpp-keyword">if</span> (x == v) <span class="cpp-keyword">continue</span>;
+            ll dpu = dp[u], subtu = subt[u], dpx = dp[x], subtx = subt[x];
+            dp[u] *= inv[subt[u] - <span class="cpp-number">1</span>] * fact[subt[u] - <span class="cpp-number">1</span> - subt[x]] % MOD;
+            dp[u] %= MOD;
+            dp[u] *= fact[subt[x]];
+            dp[u] %= MOD;
+            dp[u] *= exp(dp[x], MOD - <span class="cpp-number">2</span>);
+            dp[u] %= MOD;
+            subt[u] -= subt[x];
+            subt[x] += subt[u];
+            dp[x] *= dp[u];
+            dp[x] %= MOD;
+            dp[x] *= fact[subt[x] - <span class="cpp-number">1</span>] * inv[subtx - <span class="cpp-number">1</span>] % MOD;
+            dp[x] %= MOD;
+            dp[x] *= inv[subt[u]];
+            dp[x] %= MOD;
+            ans += dp[x];
+            ;
+            self(x, u, self);
+            dp[u] = dpu;
+            subt[u] = subtu;
+            dp[x] = dpx;
+            subt[x] = subtx;
+        }
+    };
+    dfs2(<span class="cpp-number">0</span>, -<span class="cpp-number">1</span>, dfs2);
+    ans %= MOD;
+    ans = ans * inv[n] % MOD * inv[n - <span class="cpp-number">1</span>] % MOD;
+    cout &lt;&lt; ans &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>
