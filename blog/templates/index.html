@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Notes on algorithms, machine learning, and research.">
+    <title>Blog</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blog</h1>
+        <p class="muted">Notes on algorithms, machine learning, and research.</p>
+      </header>
+      {% for category, entries in posts | groupby('category') %}
+      <section aria-labelledby="{{ category }}">
+        <h2 id="{{ category }}">{{ entries[0].section_label }}</h2>
+        <ul>
+          {% for entry in entries %}
+          <li><a href="{{ url_for('post', slug=entry.slug) }}">{{ entry.title }}</a></li>
+          {% endfor %}
+          {% if category == 'competitive-programming' %}
+          <li><a href="{{ url_for('solutions') }}">Solutions</a></li>
+          {% endif %}
+        </ul>
+      </section>
+      {% else %}
+      <p>No posts yet.</p>
+      {% endfor %}
+    </main>
+  </body>
+</html>
