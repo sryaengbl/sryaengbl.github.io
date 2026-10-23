@@ -3,6 +3,8 @@ import argparse
 import os
 import posixpath
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import quote
 
@@ -17,6 +19,11 @@ SECTIONS = {'ml': 'Machine learning', 'competitive-programming': 'Competitive pr
 PLATFORMS = ('codeforces', 'usaco', 'icpc')
 
 
+def updated_date(path):
+    date = datetime.fromtimestamp(path.stat().st_mtime, ZoneInfo('America/Indiana/Indianapolis')).date()
+    return {'iso': date.isoformat(), 'label': date.strftime('%m / %d / %y')}
+
+
 def discover(root, pattern):
     return sorted(p for p in root.rglob(pattern) if p.is_file() and p.resolve().is_relative_to(root.resolve()))
 
@@ -25,7 +32,8 @@ def build(solutions_dir):
     solutions_dir = Path(solutions_dir).resolve()
     if not solutions_dir.is_dir():
         raise ValueError(f'Solution directory does not exist: {solutions_dir}. Use --solutions-dir.')
-    env = Environment(loader=FileSystemLoader(CONTENT / 'templates'), autoescape=select_autoescape())
+    env = Environment(loader=FileSystemLoader(CONTENT / 'templates'), autoescape=select_autoescape(),
+                      trim_blocks=True, lstrip_blocks=True)
     files = {}
 
     def target(name, **values):
@@ -60,7 +68,7 @@ def build(solutions_dir):
                 return '](' + relative(destination, page) + ('#' + fragment if separator else '') + ')'
             body = re.sub(r'\]\((/(?:posts/|solutions(?:/|(?=[)#])))[^\s)]*)\)', rewrite, body)
             post = {'title': lines[0][2:] if heading else path.stem.replace('-', ' ').title(),
-                    'category': section, 'section_label': label, 'slug': slug,
+                    'category': section, 'section_label': label, 'slug': slug, 'updated': updated_date(path),
                     'content': markdown.markdown(body, extensions=['fenced_code', 'tables'])}
             render('post.html', page, post=post)
             if path.name != 'index.md': posts.append(post)
@@ -90,7 +98,7 @@ def build(solutions_dir):
                         seen.add(child)
                 else:
                     entries.append({'kind': 'solution', 'slug': relative_path.as_posix(),
-                                    'title': below.as_posix()})
+                                    'title': below.as_posix(), 'updated': updated_date(path)})
             return sorted(entries, key=lambda entry: (entry['kind'] != 'solution_folder', entry['title']))
 
         def back_link(slug):
@@ -108,7 +116,7 @@ def build(solutions_dir):
             solutions.append({'platform': platform, 'slug': slug, 'title': slug})
             prepared = prepare_solution(path.read_text(encoding='utf-8', errors='replace'))
             render('solution.html', target('solution', slug=slug), title=slug,
-                   back=back_link(slug), source_html=highlight_cpp(prepared['source']), **prepared)
+                   back=back_link(slug), updated=updated_date(path), source_html=highlight_cpp(prepared['source']), **prepared)
     render('index.html', 'index.html', posts=posts)
     render('solutions.html', 'solutions/index.html', platform_entries=platform_entries, platforms=PLATFORMS)
     for path in discover(CONTENT / 'static', '*'):

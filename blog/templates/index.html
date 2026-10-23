@@ -18,10 +18,10 @@
         <h2 id="{{ category }}">{{ entries[0].section_label }}</h2>
         <ul>
           {% for entry in entries %}
-          <li><a href="{{ url('post', slug=entry.slug) }}">{{ entry.title }}</a></li>
+          <li class="article-row"><a href="{{ url('post', slug=entry.slug) }}">{{ entry.title }}</a> <time class="article-date muted" datetime="{{ entry.updated.iso }}">{{ entry.updated.label }}</time></li>
           {% endfor %}
           {% if category == 'competitive-programming' %}
-          <li><a href="{{ url('solutions') }}">Solutions</a></li>
+          <li class="article-row"><a href="{{ url('solutions') }}">Solutions</a></li>
           {% endif %}
         </ul>
       </section>

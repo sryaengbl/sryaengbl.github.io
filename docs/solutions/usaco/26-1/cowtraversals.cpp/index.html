@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/26-1/cowtraversals.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../folders/usaco/26-1/index.html">← 26-1</a></nav>
+      <h1>usaco/26-1/cowtraversals.cpp</h1>
+      <p class="muted">Updated <time datetime="2026-10-22">10 / 22 / 26</time></p>
+      <div class="solution-layout">
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+<dt>Solve time</dt><dd>10 minutes</dd><dt>Implementation time</dt><dd>30 minutes</dd>          </dl>
+        </aside>
+        <article class="solution-content">
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">the graph can be decomposed into multiple trees where all nodes flow into the
+root of each tree, which is the party. each party is a tree
+
+to change a party from one type to another, the root of the tree changes
+to add a new party, a branch of an existing tree is severed and becomes independent.
+
+the operation of splitting trees is difficult to handle. however, if we
+reverse the queries, it becomes merging trees, which is a class dsu problem
+
+the main difficulty then becomes how to store the root of each tree properly
+given that asking for the representative node of a dsu doesn&#39;t
+necessarily return the root of the tree, but rather an arbitrary node in the tree
+
+this code solves that problem by storing the types inside the dsu too.
+since i&#39;m not too familiar with modifying DSUs, this part was what consumed most of
+my implementation time.
+
+key takeaways: reversing the queries, storing type inside the DSU.</div>
+          </section>
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">struct</span> UF {
+    vector&lt;<span class="cpp-keyword">int</span>&gt; e, type;
+
+    UF(<span class="cpp-keyword">int</span> n) : e(n, -<span class="cpp-number">1</span>), type(n, -<span class="cpp-number">1</span>) {}
+
+    <span class="cpp-keyword">int</span> size(<span class="cpp-keyword">int</span> x) { <span class="cpp-keyword">return</span> -e[find(x)]; }
+    <span class="cpp-keyword">int</span> find(<span class="cpp-keyword">int</span> x) { <span class="cpp-keyword">return</span> e[x] &lt; <span class="cpp-number">0</span> ? x : e[x] = find(e[x]); }
+
+    <span class="cpp-keyword">bool</span> join(<span class="cpp-keyword">int</span> a, <span class="cpp-keyword">int</span> b) {
+        a = find(a), b = find(b);
+        <span class="cpp-keyword">if</span> (a == b) <span class="cpp-keyword">return</span> <span class="cpp-keyword">false</span>;
+        <span class="cpp-keyword">if</span> (e[a] &gt; e[b]) swap(a, b);
+        e[a] += e[b];
+        e[b] = a;
+
+        <span class="cpp-keyword">if</span> (type[a] == -<span class="cpp-number">1</span>) type[a] = type[b];
+        <span class="cpp-keyword">return</span> <span class="cpp-keyword">true</span>;
+    }
+
+    <span class="cpp-keyword">int</span> getType(<span class="cpp-keyword">int</span> x) { <span class="cpp-keyword">return</span> type[find(x)]; }
+
+    <span class="cpp-keyword">void</span> setType(<span class="cpp-keyword">int</span> x, <span class="cpp-keyword">int</span> t) { type[find(x)] = t; }
+};
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    cin &gt;&gt; n;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; f(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        cin &gt;&gt; f[i];
+        f[i]--;
+    }
+    <span class="cpp-keyword">int</span> m;
+    cin &gt;&gt; m;
+    map&lt;<span class="cpp-keyword">char</span>, <span class="cpp-keyword">int</span>&gt; mp;
+    mp[<span class="cpp-string">&#x27;C&#x27;</span>] = <span class="cpp-number">0</span>, mp[<span class="cpp-string">&#x27;O&#x27;</span>] = <span class="cpp-number">1</span>, mp[<span class="cpp-string">&#x27;W&#x27;</span>] = <span class="cpp-number">2</span>;
+    vector&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt; upd(m);
+    vector&lt;<span class="cpp-keyword">int</span>&gt; t(n, -<span class="cpp-number">1</span>);
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; fa(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; m; i++) {
+        <span class="cpp-keyword">char</span> c;
+        cin &gt;&gt; upd[i].first &gt;&gt; c;
+        upd[i].first--;
+        upd[i].second = mp[c];
+        t[upd[i].first] = upd[i].second;
+        fa[upd[i].first].push_back(i);
+    }
+    UF dsu(n);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">if</span> (t[i] == -<span class="cpp-number">1</span>) {
+            dsu.join(i, f[i]);
+        }
+    }
+    vector&lt;vector&lt;<span class="cpp-keyword">int</span>&gt;&gt; ans(m + <span class="cpp-number">1</span>, vector&lt;<span class="cpp-keyword">int</span>&gt;(<span class="cpp-number">3</span>));
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">if</span> (t[i] != -<span class="cpp-number">1</span>) {
+            ans[m][t[i]] += dsu.size(i);
+            dsu.setType(i, t[i]);
+        }
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = m - <span class="cpp-number">1</span>; i &gt;= <span class="cpp-number">0</span>; i--) {
+        ans[i] = ans[i + <span class="cpp-number">1</span>];
+        <span class="cpp-keyword">int</span> idx = upd[i].first;
+        <span class="cpp-keyword">if</span> (fa[idx][<span class="cpp-number">0</span>] == i) {
+            ans[i][upd[i].second] -= dsu.size(idx);
+            <span class="cpp-keyword">int</span> nt = -<span class="cpp-number">1</span>;
+            <span class="cpp-keyword">if</span> (dsu.find(idx) != dsu.find(f[idx])) {
+                nt = dsu.getType(f[idx]);
+            }
+            <span class="cpp-keyword">if</span> (nt != -<span class="cpp-number">1</span>) {
+                ans[i][nt] += dsu.size(idx);
+            }
+            t[idx] = nt;
+            dsu.setType(idx, -<span class="cpp-number">1</span>);
+            dsu.join(f[idx], idx);
+        } <span class="cpp-keyword">else</span> {
+            ans[i][t[idx]] -= dsu.size(idx);
+            <span class="cpp-keyword">int</span> nxt = lower_bound(fa[idx].begin(), fa[idx].end(), i) - fa[idx].begin() - <span class="cpp-number">1</span>;
+            t[idx] = upd[fa[idx][nxt]].second;
+            dsu.setType(idx, t[idx]);
+            ans[i][t[idx]] += dsu.size(idx);
+        }
+    }
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= m; i++) {
+        <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> j = <span class="cpp-number">0</span>; j &lt; <span class="cpp-number">3</span>; j++) {
+            <span class="cpp-keyword">if</span> (j) cout &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span>;
+            cout &lt;&lt; ans[i][j];
+        }
+        cout &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    }
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    solve();
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

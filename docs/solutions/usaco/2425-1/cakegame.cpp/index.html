@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/2425-1/cakegame.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../index.html">← All solutions</a></nav>
+      <h1>usaco/2425-1/cakegame.cpp</h1>
+      <p class="muted">Updated <time datetime="2026-10-22">10 / 22 / 26</time></p>
+      <div class="solution-layout">
+        <aside class="solution-timing" aria-label="Time spent">
+          <dl>
+<dt>Solve time</dt><dd>5 minutes</dd><dt>Implementation time</dt><dd>5 minutes</dd>          </dl>
+        </aside>
+        <article class="solution-content">
+          <section aria-labelledby="analysis-heading">
+            <h2 id="analysis-heading">Analysis</h2>
+            <div class="solution-analysis">key observation is to realize that the cakes elsie eats must be
+a continuous prefix and a continuous suffix
+
+the number of cakes that elsie gets is (n-1)/2, with floor division
+if elsie desires a certain prefix + suffix, she just needs to eat the prefix
+first and the suffix second. if bessie merges cakes, the worst case scenario
+for elsie is that bessie doesn&#39;t help her.
+
+moreover, bessie can always make a &#34;special&#34; cake in the center with the cakes that
+elsie won&#39;t choose.
+
+bessie can fuse the middle cake with a cake on the left. afterward, if elsie chooses
+a cake on the left, bessie fuses the special cake with the cake on its right
+if elsie chooses from the left, bessie fuses with the right.
+
+thus, bessie always has a strategy to prevent her special cake from being
+consumed by elsie.</div>
+          </section>
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    cin &gt;&gt; n;
+    vector&lt;ll&gt; a(n + <span class="cpp-number">1</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        cin &gt;&gt; a[i];
+        a[i] += a[i - <span class="cpp-number">1</span>];
+    }
+    ll ans = <span class="cpp-number">0</span>;
+    <span class="cpp-keyword">int</span> len = (n - <span class="cpp-number">1</span>) / <span class="cpp-number">2</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt;= len; i++) {
+        ans = max(ans, a[i] + a[n] - a[n - len + i]);
+    }
+    cout &lt;&lt; a[n] - ans &lt;&lt; <span class="cpp-string">&#x27; &#x27;</span> &lt;&lt; ans &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> tt;
+    cin &gt;&gt; tt;
+    <span class="cpp-keyword">while</span> (tt--) {
+        solve();
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

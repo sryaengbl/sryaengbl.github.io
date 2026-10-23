@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>usaco/2425-1/interstellarintervals.cpp · Solutions</title>
+    <link rel="stylesheet" href="../../../../static/style.css">
+    <script src="../../../../static/copy.js" defer></script>
+  </head>
+  <body>
+    <main class="solution-page">
+      <nav><a href="../../../index.html">← All solutions</a></nav>
+      <h1>usaco/2425-1/interstellarintervals.cpp</h1>
+      <p class="muted">Updated <time datetime="2026-10-22">10 / 22 / 26</time></p>
+      <div class="solution-layout">
+        <article class="solution-content">
+          <section aria-labelledby="code-heading">
+            <h2 id="code-heading">Code</h2>
+            <div class="code-block">
+              <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+#<span class="cpp-directive">ifdef</span> LOCAL
+#<span class="cpp-directive">include</span> <span class="cpp-string">&quot;algo/debug.h&quot;</span>
+#<span class="cpp-keyword">else</span>
+#<span class="cpp-directive">define</span> dbg(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">define</span> dbgn(...) <span class="cpp-number">0</span>
+#<span class="cpp-directive">endif</span>
+
+<span class="cpp-keyword">const</span> ll MOD = <span class="cpp-number">1e9</span> + <span class="cpp-number">7</span>;
+
+<span class="cpp-keyword">void</span> solve() {
+    <span class="cpp-keyword">int</span> n;
+    string str;
+    cin &gt;&gt; n &gt;&gt; str;
+    vector&lt;ll&gt; dp(n + <span class="cpp-number">1</span>, <span class="cpp-number">0</span>);
+    dp[<span class="cpp-number">0</span>] = <span class="cpp-number">1</span>;
+    vector&lt;<span class="cpp-keyword">int</span>&gt; nxtB(n + <span class="cpp-number">2</span>, n + <span class="cpp-number">1</span>);
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = n; i &gt;= <span class="cpp-number">1</span>; i--) {
+        nxtB[i] = (str[i - <span class="cpp-number">1</span>] == <span class="cpp-string">&#x27;B&#x27;</span> ? i : nxtB[i + <span class="cpp-number">1</span>]);
+    }
+    vector&lt;vector&lt;ll&gt;&gt; bit(<span class="cpp-number">2</span>, vector&lt;ll&gt;(n + <span class="cpp-number">2</span>));
+    <span class="cpp-keyword">auto</span> add = [&amp;](<span class="cpp-keyword">int</span> p, <span class="cpp-keyword">int</span> i, ll v) {
+        v = (v % MOD + MOD) % MOD;
+        <span class="cpp-keyword">for</span> (++i; i &lt;= n + <span class="cpp-number">1</span>; i += i &amp; -i) {
+            bit[p][i] = (bit[p][i] + v) % MOD;
+        }
+    };
+    <span class="cpp-keyword">auto</span> pref = [&amp;](<span class="cpp-keyword">int</span> p, <span class="cpp-keyword">int</span> i) {
+        ll res = <span class="cpp-number">0</span>;
+        <span class="cpp-keyword">for</span> (++i; i &gt; <span class="cpp-number">0</span>; i -= i &amp; -i) {
+            res = (res + bit[p][i]) % MOD;
+        }
+        <span class="cpp-keyword">return</span> res;
+    };
+    <span class="cpp-keyword">auto</span> sum = [&amp;](<span class="cpp-keyword">int</span> p, <span class="cpp-keyword">int</span> l, <span class="cpp-keyword">int</span> r) {
+        <span class="cpp-keyword">if</span> (l &gt; r) <span class="cpp-keyword">return</span> <span class="cpp-number">0LL</span>;
+        <span class="cpp-keyword">return</span> (pref(p, r) - (l ? pref(p, l - <span class="cpp-number">1</span>) : <span class="cpp-number">0</span>) + MOD) % MOD;
+    };
+    priority_queue&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;, vector&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt;, greater&lt;pair&lt;<span class="cpp-keyword">int</span>, <span class="cpp-keyword">int</span>&gt;&gt;&gt; pq;
+    <span class="cpp-keyword">auto</span> insert = [&amp;](<span class="cpp-keyword">int</span> j) {
+        add(j % <span class="cpp-number">2</span>, j, dp[j]);
+
+        <span class="cpp-keyword">int</span> b = nxtB[j + <span class="cpp-number">1</span>];
+        <span class="cpp-keyword">if</span> (b &lt;= n) {
+            pq.push({<span class="cpp-number">2</span> * b - j, j});
+        }
+    };
+    insert(<span class="cpp-number">0</span>);
+    <span class="cpp-keyword">int</span> lastR = <span class="cpp-number">0</span>;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        <span class="cpp-keyword">if</span> (str[i - <span class="cpp-number">1</span>] == <span class="cpp-string">&#x27;R&#x27;</span>) lastR = i;
+        <span class="cpp-keyword">while</span> (!pq.empty() &amp;&amp; pq.top().first &lt;= i) {
+            <span class="cpp-keyword">int</span> j = pq.top().second;
+            pq.pop();
+            add(j % <span class="cpp-number">2</span>, j, -dp[j]);
+        }
+        <span class="cpp-keyword">if</span> (str[i - <span class="cpp-number">1</span>] == <span class="cpp-string">&#x27;X&#x27;</span>) {
+            dp[i] = dp[i - <span class="cpp-number">1</span>];
+        }
+        <span class="cpp-keyword">int</span> l = max(<span class="cpp-number">0</span>, <span class="cpp-number">2</span> * lastR - i);
+        <span class="cpp-keyword">int</span> r = i - <span class="cpp-number">2</span>;
+        dp[i] = (dp[i] + sum(i % <span class="cpp-number">2</span>, l, r)) % MOD;
+        insert(i);
+    }
+    cout &lt;&lt; dp[n] &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+}
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    solve();
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
+</code></pre>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

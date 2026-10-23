@@ -1,7 +1,9 @@
 import contextlib
 import io
+import os
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from unittest.mock import patch
@@ -70,6 +72,8 @@ class BuildTests(unittest.TestCase):
             folder.mkdir(parents=True)
             source = folder / 'a.cpp'
             source.write_text('// private comment\nint main() { const char* s = "<script>unsafe</script>"; }', encoding='utf-8')
+            stamp = datetime(2026, 10, 22, 2, tzinfo=timezone.utc).timestamp()
+            os.utime(source, (stamp, stamp))
             (folder / 'a.in').write_text('private input', encoding='utf-8')
             (solutions / 'scratch.cpp').write_text('scratch', encoding='utf-8')
             output = root / 'site'
@@ -79,6 +83,12 @@ class BuildTests(unittest.TestCase):
                 self.assertIn('&lt;script&gt;', page.read_text(encoding='utf-8'))
                 self.assertNotIn('private comment', page.read_text(encoding='utf-8'))
                 self.assertIn('data-copy-code', page.read_text(encoding='utf-8'))
+                self.assertIn('datetime="2026-10-21">10 / 21 / 26</time>', page.read_text(encoding='utf-8'))
+                self.assertIn('datetime="2026-10-21">10 / 21 / 26</time>', (output / 'solutions/index.html').read_text(encoding='utf-8'))
+                post_source = next(path for path in build.discover(build.CONTENT / 'ml', '*.md'))
+                date = build.updated_date(post_source)
+                post_page = output / 'posts' / post_source.relative_to(build.CONTENT).with_suffix('') / 'index.html'
+                self.assertIn(f'datetime="{date["iso"]}">{date["label"]}</time>', post_page.read_text(encoding='utf-8'))
                 self.assertTrue((output / 'static/copy.js').is_file())
                 self.assertFalse(list(output.rglob('*.in')))
                 self.assertFalse((output / 'solutions/scratch.cpp/index.html').exists())

@@ -12,7 +12,7 @@
       <header><h1>{{ title }}</h1></header>
       <ul>
         {% for entry in entries %}
-        <li><a href="{{ url(entry.kind, slug=entry.slug) }}">{{ entry.title }}</a>{% if entry.kind == 'solution_folder' %} <span class="muted">({{ entry.count }} solutions)</span>{% endif %}</li>
+        <li class="article-row"><a href="{{ url(entry.kind, slug=entry.slug) }}">{{ entry.title }}</a>{% if entry.kind == 'solution_folder' %} <span class="muted">({{ entry.count }} solutions)</span>{% else %} <time class="article-date muted" datetime="{{ entry.updated.iso }}">{{ entry.updated.label }}</time>{% endif %}</li>
         {% endfor %}
       </ul>
     </main>

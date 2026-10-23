@@ -11,6 +11,7 @@
     <main class="solution-page">
       <nav><a href="{{ url(back.kind, slug=back.slug) }}">← {{ back.title }}</a></nav>
       <h1>{{ title }}</h1>
+      <p class="muted">Updated <time datetime="{{ updated.iso }}">{{ updated.label }}</time></p>
       <div class="solution-layout">
         {% if solve_time or implementation_time %}
         <aside class="solution-timing" aria-label="Time spent">

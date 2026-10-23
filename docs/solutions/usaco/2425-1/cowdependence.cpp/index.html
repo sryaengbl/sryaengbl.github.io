@@ -11,15 +11,64 @@
     <main class="solution-page">
       <nav><a href="../../../index.html">← All solutions</a></nav>
       <h1>usaco/2425-1/cowdependence.cpp</h1>
+      <p class="muted">Updated <time datetime="2026-10-21">10 / 21 / 26</time></p>
       <div class="solution-layout">
-        
         <article class="solution-content">
-          
           <section aria-labelledby="code-heading">
             <h2 id="code-heading">Code</h2>
             <div class="code-block">
               <button class="copy-code" type="button" data-copy-code aria-label="Copy C++ code" aria-live="polite" hidden>Copy</button>
-              <pre><code class="language-cpp">
+              <pre><code class="language-cpp">#<span class="cpp-directive">include</span> &lt;bits/stdc++.h&gt;
+<span class="cpp-keyword">using</span> <span class="cpp-keyword">namespace</span> std;
+<span class="cpp-keyword">using</span> ll = <span class="cpp-keyword">long</span> <span class="cpp-keyword">long</span>;
+
+<span class="cpp-keyword">const</span> <span class="cpp-keyword">int</span> N = <span class="cpp-number">1e5</span> + <span class="cpp-number">5</span>;
+
+<span class="cpp-keyword">int</span> n;
+<span class="cpp-keyword">int</span> p[N];
+<span class="cpp-keyword">int</span> ans[N];
+vector&lt;<span class="cpp-keyword">int</span>&gt; a[N];
+
+int32_t main() {
+    cin.tie(<span class="cpp-number">0</span>)-&gt;sync_with_stdio(<span class="cpp-number">0</span>);
+    cin &gt;&gt; n;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">0</span>; i &lt; n; i++) {
+        <span class="cpp-keyword">int</span> x;
+        cin &gt;&gt; x;
+        a[x].push_back(i);
+    }
+    <span class="cpp-keyword">auto</span> check = [&amp;](<span class="cpp-keyword">int</span> idx, <span class="cpp-keyword">int</span> jump) -&gt; <span class="cpp-keyword">int</span> {
+        <span class="cpp-keyword">int</span> ret = <span class="cpp-number">0</span>, at = <span class="cpp-number">0</span>;
+        <span class="cpp-keyword">while</span> (at &lt; a[idx].size()) {
+            ret++;
+            at = upper_bound(a[idx].begin(), a[idx].end(), a[idx][at] + jump) - a[idx].begin();
+        }
+        <span class="cpp-keyword">return</span> ret;
+    };
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        <span class="cpp-keyword">int</span> c = a[i].size(), mn = <span class="cpp-number">1</span>;
+        <span class="cpp-keyword">while</span> (c &gt; <span class="cpp-number">1</span>) {
+            <span class="cpp-keyword">int</span> low = mn, high = a[i].back() - a[i][<span class="cpp-number">0</span>];
+            <span class="cpp-keyword">while</span> (low &lt; high) {
+                <span class="cpp-keyword">int</span> mid = low + (high - low) / <span class="cpp-number">2</span>;
+                <span class="cpp-keyword">if</span> (check(i, mid) &lt; c)
+                    high = mid;
+                <span class="cpp-keyword">else</span>
+                    low = mid + <span class="cpp-number">1</span>;
+            }
+            <span class="cpp-keyword">int</span> nw = check(i, low);
+            p[low] -= c - nw;
+            c = nw;
+            mn = low;
+        }
+    }
+    p[<span class="cpp-number">0</span>] = n;
+    <span class="cpp-keyword">for</span> (<span class="cpp-keyword">int</span> i = <span class="cpp-number">1</span>; i &lt;= n; i++) {
+        p[i] += p[i - <span class="cpp-number">1</span>];
+        cout &lt;&lt; p[i] &lt;&lt; <span class="cpp-string">&#x27;\n&#x27;</span>;
+    }
+    <span class="cpp-keyword">return</span> <span class="cpp-number">0</span>;
+}
 </code></pre>
             </div>
           </section>

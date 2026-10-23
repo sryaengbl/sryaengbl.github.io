@@ -24,6 +24,8 @@ Visit http://localhost:8000. Re-run the build after editing Markdown, templates,
 
 Keep Markdown under `blog/ml/`, `blog/competitive-programming/`, and `blog/research/`, at any depth. Use a first-line `# Title`. The build discovers posts automatically. For example, `blog/ml/backpropagation.md` becomes `docs/posts/ml/backpropagation/index.html`.
 
+Every Markdown article and C++ solution displays an Updated date from its source file's last-modified metadata, in America/Indiana/Indianapolis time. Dates appear on article pages and in listings and refresh on rebuild. Rebuilding alone does not change them; copying files or a fresh Git checkout can change their filesystem modification timestamps.
+
 Section `index.md` pages are generated but excluded from the homepage post list. The homepage links directly to algorithm articles and the solutions index. The platform folders in `blog/competitive-programming/solutions/` are available for Markdown writeups.
 
 Site links in Markdown can use `/posts/ml/backpropagation` or `/solutions`; the builder converts these to relative HTML links. Templates and styles live in `blog/templates/` and `blog/static/`. Markdown is trusted author content and may include raw HTML.
